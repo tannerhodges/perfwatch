@@ -5,3 +5,5 @@ Prototype for a new app (extension?) that helps developers monitor performance c
 ```sh
 npm start
 ```
+
+![Screenshot of perfwatch prototype](./images/2023-09-04-perfwatch-prototype-v0.1.0.jpg)

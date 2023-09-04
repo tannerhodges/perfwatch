@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>perfwatch</title>
+	<style>
+		body {
+			margin-block-end: 10rem;
+		}
+
+		table {
+			table-layout: fixed;
+			min-width: 15rem;
+			border-collapse: collapse;
+			font-variant-numeric: tabular-nums;
+			text-align: left;
+		}
+
+		:where(th, td):last-child {
+			text-align: right;
+		}
+	</style>
+</head>
+<body>
+	<h1>perfwatch</h1>
+
+	<p>👉 <a href="/example.html" target="_blank" rel="noopener">Open example page in new tab</a>, refresh that page a few times, then come back here.</p>
+
+	<div x-data="{
+		metrics: [
+			'TTFB',
+			'FCP',
+			'LCP',
+			'FID',
+			'CLS',
+		],
+
+		selectedMetric: $persist(''),
+
+		reset() {
+			$store.data.events = [];
+		},
+
+		getAverage(events) {
+			return events.reduce((sum, e) => (sum + (e?.value || 0)), 0) / (events.length || 1);
+		},
+
+		getEventsGroupedByInstanceId() {
+			const instanceEvents = $store.data.events.reduce((result, event) => {
+				let instance = result.find(g => g.instanceId === event.instanceId);
+				if (instance) {
+					instance.events.push(event);
+				} else {
+					result.push({
+						instanceId: event.instanceId,
+						events: [event],
+					});
+				}
+				return result;
+			}, []);
+
+			instanceEvents.sort((a, b) => a.instanceId - b.instanceId);
+
+			return instanceEvents;
+		},
+
+		getChart(events = []) {
+			const instanceEvents = this.getEventsGroupedByInstanceId();
+			const labels = instanceEvents.map(i => i.instanceId);
+
+			const datasets = this.metrics.map((metric) => ({
+				label: metric,
+				data: instanceEvents.map((instance) => {
+					return instance.events.find(e => e.name === metric)?.value.toFixed(3);
+				}),
+			})).filter((dataset) => {
+				return !this.selectedMetric || dataset.label === this.selectedMetric;
+			});
+
+			return { labels, datasets };
+		},
+
+		init() {
+			const { labels, datasets } = this.getChart();
+			const chart = new Chart(this.$refs.canvas.getContext('2d'), {
+				type: 'line',
+				data: { labels, datasets },
+				options: {
+					animation: false,
+					interaction: { intersect: false },
+					scales: { y: { beginAtZero: true } },
+				}
+			});
+
+			Alpine.effect(() => {
+				const events = $store.data.events.filter(e => e.name === 'TTFB');
+				const { labels, datasets } = this.getChart(events);
+				chart.data.labels = labels;
+				chart.data.datasets = datasets;
+				chart.update();
+			});
+		},
+	}">
+		<label for="selectedMetric">Filter by metric:</label>
+		<select id="selectedMetric" x-model="selectedMetric">
+			<option value="">View All</option>
+			<option>TTFB</option>
+			<option>FCP</option>
+			<option>LCP</option>
+			<option>FID</option>
+			<option>CLS</option>
+		</select>
+		<button type="button" @click="reset()">Reset</button>
+
+		<hr>
+
+		<canvas x-ref="canvas" class="rounded-lg bg-white p-8"></canvas>
+
+		<hr>
+
+		<details>
+			<summary>Show All Events</summary>
+			<table cellpadding="5" border="1">
+				<thead>
+					<th>Metric</th>
+					<th>Value</th>
+				</thead>
+				<tbody>
+					<template x-for="event in $store.data.events">
+						<tr x-show="!selectedMetric || selectedMetric === event.name">
+							<td x-text="event.name"></td>
+							<td x-text="event.value.toFixed(3)"></td>
+						</tr>
+					</template>
+				</tbody>
+				<tfoot>
+					<template x-for="metric in ['TTFB', 'FCP', 'LCP', 'FID', 'CLS']">
+						<tr x-show="!selectedMetric || selectedMetric === metric">
+							<td x-text="`Average ${metric}`"></td>
+							<td x-text="getAverage($store.data.events.filter(e => e.name === metric)).toFixed(3)"></td>
+						</tr>
+					</template>
+				</tfoot>
+			</table>
+		</details>
+	</div>
+
+	<script type="module">
+		(function () {
+			const channel = new BroadcastChannel('perfwatch');
+
+			document.addEventListener('alpine:init', () => {
+				Alpine.store('data', {
+					events: [],
+				});
+			});
+
+			document.addEventListener('alpine:initialized', () => {
+				Alpine.store('data', {
+					events: Alpine.$persist([]).as('events'),
+				});
+			});
+
+			channel.addEventListener('message', (event) => {
+				Alpine.store('data').events.push(event.data);
+			});
+		})();
+	</script>
+	<script defer src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
+	<script defer src="https://unpkg.com/@alpinejs/persist@3.10.2/dist/cdn.min.js"></script>
+	<script defer src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"></script>
+</body>
+</html>

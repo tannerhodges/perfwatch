@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Example Page</title>
+</head>
+<body>
+	<h1>Example Page</h1>
+	<img src="https://cdn.britannica.com/40/75640-050-F894DD85/tiger-Siberian.jpg" width="400" height="277" alt="Tiger">
+	<p>This is an example page.</p>
+
+	<script type="module">
+		// Import local copy of web-vitals library.
+		// https://github.com/GoogleChrome/web-vitals#readme
+		import { getTTFB, getFCP, getLCP, getFID, getCLS } from '/script.js';
+
+		(function () {
+			if (!window.BroadcastChannel || !window.PerformanceObserver) {
+				return;
+			}
+
+			// Send performance data to perfwatch.
+			const channel = new BroadcastChannel('perfwatch');
+			const instanceId = Date.now().toString();
+
+			function sendMessage(e) {
+				channel.postMessage({
+					name: e.name,
+					value: e.value,
+					instanceId,
+					timestamp: Date.now(),
+				});
+			};
+
+			// Collect metrics.
+			getTTFB(sendMessage);
+			getFCP(sendMessage);
+			getLCP(sendMessage);
+			getFID(sendMessage);
+			getCLS(sendMessage);
+		})();
+	</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "perfwatch",
+  "version": "0.1.0",
+  "description": "Monitor performance changes during development.",
+  "scripts": {
+    "start": "npx http-server -o"
+  },
+  "author": "Tanner Hodges <me@tannerhodges.com>",
+  "license": "ISC"
+}

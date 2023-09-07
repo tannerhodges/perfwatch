@@ -12,9 +12,7 @@ npm start
 <script async src="http://localhost:1873/perfwatch.js"></script>
 ```
 
-_TODO: Update screenshot..._
-
-![Screenshot of perfwatch prototype](./images/2023-09-04-perfwatch-prototype-v0.1.0.jpg)
+![Screenshot of perfwatch prototype](./images/2023-09-04-perfwatch-prototype-v0.2.0.jpg)
 
 ## Notes
 

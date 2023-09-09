@@ -1,174 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>perfwatch</title>
-	<style>
-		body {
-			margin-block-end: 10rem;
-		}
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+		<!-- https://alpinejs.dev/advanced/csp -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+		<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 
-		table {
-			table-layout: fixed;
-			min-width: 15rem;
-			border-collapse: collapse;
-			font-variant-numeric: tabular-nums;
-			text-align: left;
-		}
+		<title>⏱️ perfwatch</title>
 
-		:where(th, td):last-child {
-			text-align: right;
-		}
-	</style>
-</head>
-<body>
-	<h1>perfwatch</h1>
+		<link rel="stylesheet" href="./style.css">
 
-	<p>👉 <a href="/example.html" target="_blank" rel="noopener">Open example page in new tab</a>, refresh that page a few times, then come back here.</p>
+		<script defer src="./renderer.js"></script>
+		<script defer src="./vendor/chartjs-4.4.0.umd.js"></script>
+		<script defer src="./vendor/alpinejs-persist-3.10.2.min.js"></script>
+		<script defer src="./vendor/alpinejs-csp-3.13.0-5-gd77d117.min.js"></script>
+	</head>
+	<body x-data="App">
+		<h1>⏱️ perfwatch</h1>
 
-	<div x-data="{
-		metrics: [
-			'TTFB',
-			'FCP',
-			'LCP',
-			'FID',
-			'CLS',
-		],
+		<h2>Add script to your website</h2>
+		<pre><code>&lt;!-- ⏱️ perfwatch - ONLY FOR LOCAL DEVELOPMENT --&gt;
+&lt;script async src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
 
-		selectedMetric: $persist(''),
+		<h2>Select your project folder</h2>
+		<div>
+			<button type="button" @click="selectFolder">Select Folder</button>
+			<strong x-text="folderPath"></strong>
+		</div>
 
-		reset() {
-			$store.data.events = [];
-		},
+		<h2>Load your website</h2>
+		<p>Then check back here to see the results…</p>
 
-		getAverage(events) {
-			return events.reduce((sum, e) => (sum + (e?.value || 0)), 0) / (events.length || 1);
-		},
+		<div>
+			<!-- https://github.com/alpinejs/alpine/discussions/1849 -->
+			<label for="selectedMetric">Filter by metric:</label>
+			<select id="selectedMetric" :value="selectedMetric" @change="setSelectedMetric">
+				<option value="" :selected="isMetricSelected">View All</option>
+				<template x-for="metric of metrics">
+					<option x-text="metric" :selected="isMetricSelected"></option>
+				</template>
+			</select>
+			<button type="button" @click="reset">Reset</button>
 
-		getEventsGroupedByInstanceId() {
-			const instanceEvents = $store.data.events.reduce((result, event) => {
-				let instance = result.find(g => g.instanceId === event.instanceId);
-				if (instance) {
-					instance.events.push(event);
-				} else {
-					result.push({
-						instanceId: event.instanceId,
-						events: [event],
-					});
-				}
-				return result;
-			}, []);
+			<hr>
 
-			instanceEvents.sort((a, b) => a.instanceId - b.instanceId);
+			<canvas x-ref="canvas" class="rounded-lg bg-white p-8"></canvas>
 
-			return instanceEvents;
-		},
+			<hr>
 
-		getChart(events = []) {
-			const instanceEvents = this.getEventsGroupedByInstanceId();
-			const labels = instanceEvents.map(i => i.instanceId);
+			<details>
+				<summary>Show All Events</summary>
+				<table cellpadding="5" border="1">
+					<thead>
+						<th>Timestamp</th>
+						<th>Metric</th>
+						<th>Value</th>
+					</thead>
+					<tbody>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						<template x-for="event in events">
+							<tr x-show="showEvent">
+								<td x-text="getEventDateTime"></td>
+								<td x-text="getEventName"></td>
+								<td x-text="getEventValue"></td>
+							</tr>
+						</template>
+					</tbody>
+					<tfoot>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						<template x-for="metric in metrics">
+							<tr x-show="showMetric">
+								<td x-text="getAverageMetricLabel" colspan="2"></td>
+								<td x-text="getAverageMetric"></td>
+							</tr>
+						</template>
+					</tfoot>
+				</table>
+			</details>
 
-			const datasets = this.metrics.map((metric) => ({
-				label: metric,
-				data: instanceEvents.map((instance) => {
-					return instance.events.find(e => e.name === metric)?.value.toFixed(3);
-				}),
-			})).filter((dataset) => {
-				return !this.selectedMetric || dataset.label === this.selectedMetric;
-			});
-
-			return { labels, datasets };
-		},
-
-		init() {
-			const { labels, datasets } = this.getChart();
-			const chart = new Chart(this.$refs.canvas.getContext('2d'), {
-				type: 'line',
-				data: { labels, datasets },
-				options: {
-					animation: false,
-					interaction: { intersect: false },
-					scales: { y: { beginAtZero: true } },
-				}
-			});
-
-			Alpine.effect(() => {
-				const events = $store.data.events.filter(e => e.name === 'TTFB');
-				const { labels, datasets } = this.getChart(events);
-				chart.data.labels = labels;
-				chart.data.datasets = datasets;
-				chart.update();
-			});
-		},
-	}">
-		<label for="selectedMetric">Filter by metric:</label>
-		<select id="selectedMetric" x-model="selectedMetric">
-			<option value="">View All</option>
-			<option>TTFB</option>
-			<option>FCP</option>
-			<option>LCP</option>
-			<option>FID</option>
-			<option>CLS</option>
-		</select>
-		<button type="button" @click="reset()">Reset</button>
-
-		<hr>
-
-		<canvas x-ref="canvas" class="rounded-lg bg-white p-8"></canvas>
-
-		<hr>
-
-		<details>
-			<summary>Show All Events</summary>
-			<table cellpadding="5" border="1">
-				<thead>
-					<th>Metric</th>
-					<th>Value</th>
-				</thead>
-				<tbody>
-					<template x-for="event in $store.data.events">
-						<tr x-show="!selectedMetric || selectedMetric === event.name">
-							<td x-text="event.name"></td>
-							<td x-text="event.value.toFixed(3)"></td>
-						</tr>
-					</template>
-				</tbody>
-				<tfoot>
-					<template x-for="metric in ['TTFB', 'FCP', 'LCP', 'FID', 'CLS']">
-						<tr x-show="!selectedMetric || selectedMetric === metric">
-							<td x-text="`Average ${metric}`"></td>
-							<td x-text="getAverage($store.data.events.filter(e => e.name === metric)).toFixed(3)"></td>
-						</tr>
-					</template>
-				</tfoot>
-			</table>
-		</details>
-	</div>
-
-	<script type="module">
-		(function () {
-			const channel = new BroadcastChannel('perfwatch');
-
-			document.addEventListener('alpine:init', () => {
-				Alpine.store('data', {
-					events: [],
-				});
-			});
-
-			document.addEventListener('alpine:initialized', () => {
-				Alpine.store('data', {
-					events: Alpine.$persist([]).as('events'),
-				});
-			});
-
-			channel.addEventListener('message', (event) => {
-				Alpine.store('data').events.push(event.data);
-			});
-		})();
-	</script>
-	<script defer src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
-	<script defer src="https://unpkg.com/@alpinejs/persist@3.10.2/dist/cdn.min.js"></script>
-	<script defer src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"></script>
-</body>
+			<details>
+				<summary>Show File Changes</summary>
+				<table cellpadding="5" border="1">
+					<thead>
+						<th>Timestamp</th>
+						<th>Event</th>
+						<th>Path</th>
+					</thead>
+					<tbody>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						<template x-for="fileChange in fileChanges">
+							<tr>
+								<td x-text="getFileChangeDateTime"></td>
+								<td x-text="getFileChangeEvent"></td>
+								<td x-text="getFileChangePath"></td>
+							</tr>
+						</template>
+					</tbody>
+				</table>
+			</details>
+		</div>
+	</body>
 </html>

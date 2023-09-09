@@ -1,0 +1,23 @@
+body {
+	margin-block-end: 10rem;
+}
+
+table {
+	table-layout: fixed;
+	min-width: 15rem;
+	border-collapse: collapse;
+	font-variant-numeric: tabular-nums;
+	text-align: left;
+}
+
+:where(th, td):last-child {
+	text-align: right;
+}
+
+summary {
+	margin-block: 0.5rem;
+}
+
+#folderButton {
+	margin-inline-end: 0.25rem;
+}

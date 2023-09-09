@@ -26,23 +26,40 @@
 			:where(th, td):last-child {
 				text-align: right;
 			}
+
+			summary {
+				margin-block: 0.5rem;
+			}
+
+			#folderButton {
+				margin-inline-end: 0.25rem;
+			}
 		</style>
 
 		<script>
 			document.addEventListener('alpine:init', () => {
 				Alpine.store('data', {
 					events: [],
+					fileChanges: [],
+					folderPath: '',
 				});
 			});
 
 			document.addEventListener('alpine:initialized', () => {
 				Alpine.store('data', {
 					events: Alpine.$persist([]).as('events'),
+					fileChanges: Alpine.$persist([]).as('fileChanges'),
+					folderPath: Alpine.$persist('').as('folderPath'),
 				});
 			});
 
 			window.electronAPI.handleLog((data) => {
 				Alpine.store('data').events.push(data);
+			});
+
+			window.electronAPI.handleFileChange((event, path) => {
+				const timestamp = performance.timeOrigin + performance.now();
+				Alpine.store('data').fileChanges.push({ timestamp, event, path });
 			});
 		</script>
 
@@ -54,22 +71,22 @@
 	<body>
 		<h1>⏱️ perfwatch</h1>
 
-		<!-- <h2>Select your project folder</h2>
-		<div>
-			<button type="button" id="folder-button">Select Folder</button>
-			<p>Folder Path: <strong id="folder-path"></strong></p>
-		</div> -->
-
-		<h2>Add this script to your website</h2>
+		<h2>Add script to your website</h2>
 		<pre><code>&lt;!-- ⏱️ perfwatch - ONLY FOR LOCAL DEVELOPMENT --&gt;
 &lt;script async src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
 
-		<!-- <h2>Load your website</h2>
-		<p>Then check back here to see the results…</p> -->
+		<h2>Select your project folder</h2>
+		<div x-data="{
+			async selectFolder() {
+				$store.data.folderPath = await window.electronAPI.openFolder();
+			},
+		}">
+			<button type="button" @click="selectFolder()">Select Folder</button>
+			<strong x-text="$store.data.folderPath"></strong>
+		</div>
 
-		<!-- <h2>Logs</h2>
-		<h3>File Changes</h3>
-		<ul id="file-changes"></ul> -->
+		<h2>Load your website</h2>
+		<p>Then check back here to see the results…</p>
 
 		<div x-data="{
 			metrics: [
@@ -84,6 +101,11 @@
 
 			reset() {
 				$store.data.events = [];
+				$store.data.fileChanges = [];
+			},
+
+			formatDateTime(timestamp) {
+				return (new Date(timestamp)).toISOString();
 			},
 
 			getAverage(events) {
@@ -186,6 +208,26 @@
 							</tr>
 						</template>
 					</tfoot>
+				</table>
+			</details>
+
+			<details>
+				<summary>Show File Changes</summary>
+				<table cellpadding="5" border="1">
+					<thead>
+						<th>Timestamp</th>
+						<th>Event</th>
+						<th>Path</th>
+					</thead>
+					<tbody>
+						<template x-for="fileChange in $store.data.fileChanges">
+							<tr>
+								<td x-text="formatDateTime(fileChange.timestamp)"></td>
+								<td x-text="fileChange.event"></td>
+								<td x-text="fileChange.path"></td>
+							</tr>
+						</template>
+					</tbody>
 				</table>
 			</details>
 		</div>

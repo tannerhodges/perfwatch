@@ -87,7 +87,7 @@ document.addEventListener('alpine:init', () => {
 
 			getChart() {
 				const instanceEvents = this.getEventsGroupedByInstanceId();
-				const labels = instanceEvents.map(i => i.instanceId);
+				const labels = instanceEvents.map(i => this.formatDateTime(i.instanceId));
 				const metricColors = this.getMetricColors();
 
 				const datasets = this.metrics.map((metric) => ({

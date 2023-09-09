@@ -163,6 +163,8 @@ document.addEventListener('alpine:init', () => {
 					this.events.push(data);
 				});
 
+				window.electronAPI.setFolder(this.folderPath);
+
 				window.electronAPI.handleFileChange((event, path) => {
 					const timestamp = performance.timeOrigin + performance.now();
 					this.fileChanges.push({ timestamp, event, path });

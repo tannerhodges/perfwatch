@@ -113,6 +113,11 @@ app.whenReady().then(async () => {
 
 	ipcMain.handle('open-folder', handleFolderOpen);
 
+	ipcMain.handle('set-folder', async (event, folderPath) => {
+		await resetFileWatcher();
+		fileWatcher.add(folderPath);
+	});
+
 	createWindow();
 
 	app.on('activate', () => {

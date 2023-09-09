@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-	version: process.env.npm_package_version,
+	getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 
 	openFolder: () => ipcRenderer.invoke('open-folder'),
 

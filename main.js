@@ -118,6 +118,8 @@ app.whenReady().then(async () => {
 		fileWatcher.add(folderPath);
 	});
 
+	ipcMain.handle('get-app-version', () => app.getVersion());
+
 	createWindow();
 
 	app.on('activate', () => {

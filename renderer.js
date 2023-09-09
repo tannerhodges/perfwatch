@@ -14,6 +14,14 @@ document.addEventListener('alpine:init', () => {
 				'CLS',
 			],
 
+			setSelectedMetric(event) {
+				this.selectedMetric = event.target.value;
+			},
+
+			isMetricSelected() {
+				return this.selectedMetric === this.$data.metric;
+			},
+
 			async selectFolder() {
 				const folderPath = await window.electronAPI.openFolder();
 				this.folderPath = folderPath;

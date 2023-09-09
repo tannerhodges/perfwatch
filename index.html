@@ -34,15 +34,13 @@
 		<p>Then check back here to see the results…</p>
 
 		<div>
-			<!-- TODO: Fix x-model failing to update selectedMetric -->
+			<!-- https://github.com/alpinejs/alpine/discussions/1849 -->
 			<label for="selectedMetric">Filter by metric:</label>
-			<select id="selectedMetric" x-model="selectedMetric">
-				<option value="">View All</option>
-				<option>TTFB</option>
-				<option>FCP</option>
-				<option>LCP</option>
-				<option>FID</option>
-				<option>CLS</option>
+			<select id="selectedMetric" :value="selectedMetric" @change="setSelectedMetric">
+				<option value="" :selected="isMetricSelected">View All</option>
+				<template x-for="metric of metrics">
+					<option x-text="metric" :selected="isMetricSelected"></option>
+				</template>
 			</select>
 			<button type="button" @click="reset">Reset</button>
 

@@ -108,6 +108,10 @@ document.addEventListener('alpine:init', () => {
 				return !this.selectedMetric || selectedMetric === this.$data.event.name;
 			},
 
+			getEventDateTime() {
+				return this.formatDateTime(this.$data.event.instanceId);
+			},
+
 			getEventName() {
 				return this.$data.event.name;
 			},

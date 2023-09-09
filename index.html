@@ -54,6 +54,7 @@
 				<summary>Show All Events</summary>
 				<table cellpadding="5" border="1">
 					<thead>
+						<th>Timestamp</th>
 						<th>Metric</th>
 						<th>Value</th>
 					</thead>
@@ -61,6 +62,7 @@
 						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
 						<template x-for="event in events">
 							<tr x-show="showEvent">
+								<td x-text="getEventDateTime"></td>
 								<td x-text="getEventName"></td>
 								<td x-text="getEventValue"></td>
 							</tr>
@@ -70,7 +72,7 @@
 						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
 						<template x-for="metric in metrics">
 							<tr x-show="showMetric">
-								<td x-text="getAverageMetricLabel"></td>
+								<td x-text="getAverageMetricLabel" colspan="2"></td>
 								<td x-text="getAverageMetric"></td>
 							</tr>
 						</template>

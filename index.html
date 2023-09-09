@@ -3,11 +3,10 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<!-- TODO: Update Alpine to not require `unsafe-eval` -->
-		<!-- https://alpinejs.dev/advanced/csp -->
 		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'">
-		<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'">
+		<!-- https://alpinejs.dev/advanced/csp -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+		<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 
 		<title>⏱️ perfwatch</title>
 
@@ -16,9 +15,9 @@
 		<script defer src="./renderer.js"></script>
 		<script defer src="./vendor/chartjs-4.4.0.umd.js"></script>
 		<script defer src="./vendor/alpinejs-persist-3.10.2.min.js"></script>
-		<script defer src="./vendor/alpinejs-3.10.2.min.js"></script>
+		<script defer src="./vendor/alpinejs-csp-3.13.0-5-gd77d117.min.js"></script>
 	</head>
-	<body>
+	<body x-data="App">
 		<h1>⏱️ perfwatch</h1>
 
 		<h2>Add script to your website</h2>
@@ -26,98 +25,16 @@
 &lt;script async src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
 
 		<h2>Select your project folder</h2>
-		<div x-data="{
-			async selectFolder() {
-				$store.data.folderPath = await window.electronAPI.openFolder();
-			},
-		}">
-			<button type="button" @click="selectFolder()">Select Folder</button>
-			<strong x-text="$store.data.folderPath"></strong>
+		<div>
+			<button type="button" @click="selectFolder">Select Folder</button>
+			<strong x-text="folderPath"></strong>
 		</div>
 
 		<h2>Load your website</h2>
 		<p>Then check back here to see the results…</p>
 
-		<div x-data="{
-			metrics: [
-				'TTFB',
-				'FCP',
-				'LCP',
-				'FID',
-				'CLS',
-			],
-
-			selectedMetric: $persist(''),
-
-			reset() {
-				$store.data.events = [];
-				$store.data.fileChanges = [];
-			},
-
-			formatDateTime(timestamp) {
-				return (new Date(timestamp)).toISOString();
-			},
-
-			getAverage(events) {
-				return events.reduce((sum, e) => (sum + (e?.value || 0)), 0) / (events.length || 1);
-			},
-
-			getEventsGroupedByInstanceId() {
-				const instanceEvents = $store.data.events.reduce((result, event) => {
-					let instance = result.find(g => g.instanceId === event.instanceId);
-					if (instance) {
-						instance.events.push(event);
-					} else {
-						result.push({
-							instanceId: event.instanceId,
-							events: [event],
-						});
-					}
-					return result;
-				}, []);
-
-				instanceEvents.sort((a, b) => a.instanceId - b.instanceId);
-
-				return instanceEvents;
-			},
-
-			getChart(events = []) {
-				const instanceEvents = this.getEventsGroupedByInstanceId();
-				const labels = instanceEvents.map(i => i.instanceId);
-
-				const datasets = this.metrics.map((metric) => ({
-					label: metric,
-					data: instanceEvents.map((instance) => {
-						return instance.events.find(e => e.name === metric)?.value.toFixed(3);
-					}),
-				})).filter((dataset) => {
-					return !this.selectedMetric || dataset.label === this.selectedMetric;
-				});
-
-				return { labels, datasets };
-			},
-
-			init() {
-				const { labels, datasets } = this.getChart();
-				const chart = new Chart(this.$refs.canvas.getContext('2d'), {
-					type: 'line',
-					data: { labels, datasets },
-					options: {
-						animation: false,
-						interaction: { intersect: false },
-						scales: { y: { beginAtZero: true } },
-					}
-				});
-
-				Alpine.effect(() => {
-					const events = $store.data.events.filter(e => e.name === 'TTFB');
-					const { labels, datasets } = this.getChart(events);
-					chart.data.labels = labels;
-					chart.data.datasets = datasets;
-					chart.update();
-				});
-			},
-		}">
+		<div>
+			<!-- TODO: Fix x-model failing to update selectedMetric -->
 			<label for="selectedMetric">Filter by metric:</label>
 			<select id="selectedMetric" x-model="selectedMetric">
 				<option value="">View All</option>
@@ -127,7 +44,7 @@
 				<option>FID</option>
 				<option>CLS</option>
 			</select>
-			<button type="button" @click="reset()">Reset</button>
+			<button type="button" @click="reset">Reset</button>
 
 			<hr>
 
@@ -143,7 +60,7 @@
 						<th>Value</th>
 					</thead>
 					<tbody>
-						<template x-for="event in $store.data.events">
+						<template x-for="event in events">
 							<tr x-show="!selectedMetric || selectedMetric === event.name">
 								<td x-text="event.name"></td>
 								<td x-text="event.value.toFixed(3)"></td>
@@ -154,7 +71,7 @@
 						<template x-for="metric in ['TTFB', 'FCP', 'LCP', 'FID', 'CLS']">
 							<tr x-show="!selectedMetric || selectedMetric === metric">
 								<td x-text="`Average ${metric}`"></td>
-								<td x-text="getAverage($store.data.events.filter(e => e.name === metric)).toFixed(3)"></td>
+								<td x-text="getAverage(events.filter(e => e.name === metric)).toFixed(3)"></td>
 							</tr>
 						</template>
 					</tfoot>
@@ -170,7 +87,8 @@
 						<th>Path</th>
 					</thead>
 					<tbody>
-						<template x-for="fileChange in $store.data.fileChanges">
+						<!-- TODO: Fix object properties failing to render -->
+						<template x-for="fileChange in fileChanges">
 							<tr>
 								<td x-text="formatDateTime(fileChange.timestamp)"></td>
 								<td x-text="fileChange.event"></td>

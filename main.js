@@ -70,6 +70,7 @@ async function resetFileWatcher() {
 	fileWatcher = chokidar.watch([], {
 		ignored: [
 			'**/.*', // Ignore hidden files
+			'**/.*/**/*', // Ignore hidden folders
 			'**/node_modules/**/*',
 		],
 		ignoreInitial: true,

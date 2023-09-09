@@ -1,6 +1,7 @@
 document.addEventListener('alpine:init', () => {
 	Alpine.data('App', function () {
 		return {
+			version: this.$persist(window.electronAPI.version).as('version'),
 			events: this.$persist([]).as('events'),
 			fileChanges: this.$persist([]).as('fileChanges'),
 			folderPath: this.$persist('').as('folderPath'),
@@ -144,7 +145,16 @@ document.addEventListener('alpine:init', () => {
 				return this.$data.fileChange.path;
 			},
 
+			checkVersion() {
+				if (this.version !== window.electronAPI.version) {
+					console.log(`Version changed from "${this.version}" to "${window.electronAPI.version}"`);
+					this.version = window.electronAPI.version;
+				}
+			},
+
 			init() {
+				this.checkVersion();
+
 				const { labels, datasets } = this.getChart();
 				const chart = new Chart(this.$refs.canvas.getContext('2d'), {
 					type: 'line',

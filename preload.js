@@ -1,6 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+	version: process.env.npm_package_version,
+
 	openFolder: () => ipcRenderer.invoke('open-folder'),
 
 	setFolder: (folderPath) => ipcRenderer.invoke('set-folder', folderPath),

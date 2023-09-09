@@ -68,6 +68,42 @@ document.addEventListener('alpine:init', () => {
 				return { labels, datasets };
 			},
 
+			showEvent() {
+				return !this.selectedMetric || selectedMetric === this.$data.event.name;
+			},
+
+			getEventName() {
+				return this.$data.event.name;
+			},
+
+			getEventValue() {
+				return this.$data.event.value.toFixed(3);
+			},
+
+			showMetric() {
+				return !this.selectedMetric || this.selectedMetric === this.$data.metric;
+			},
+
+			getAverageMetricLabel() {
+				return `Average ${this.$data.metric}`;
+			},
+
+			getAverageMetric() {
+				return this.getAverage(this.$data.events.filter(e => e.name === this.$data.metric)).toFixed(3);
+			},
+
+			getFileChangeDateTime() {
+				return this.formatDateTime(this.$data.fileChange.timestamp);
+			},
+
+			getFileChangeEvent() {
+				return this.$data.fileChange.event;
+			},
+
+			getFileChangePath() {
+				return this.$data.fileChange.path;
+			},
+
 			init() {
 				const { labels, datasets } = this.getChart();
 				const chart = new Chart(this.$refs.canvas.getContext('2d'), {

@@ -60,18 +60,20 @@
 						<th>Value</th>
 					</thead>
 					<tbody>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
 						<template x-for="event in events">
-							<tr x-show="!selectedMetric || selectedMetric === event.name">
-								<td x-text="event.name"></td>
-								<td x-text="event.value.toFixed(3)"></td>
+							<tr x-show="showEvent">
+								<td x-text="getEventName"></td>
+								<td x-text="getEventValue"></td>
 							</tr>
 						</template>
 					</tbody>
 					<tfoot>
-						<template x-for="metric in ['TTFB', 'FCP', 'LCP', 'FID', 'CLS']">
-							<tr x-show="!selectedMetric || selectedMetric === metric">
-								<td x-text="`Average ${metric}`"></td>
-								<td x-text="getAverage(events.filter(e => e.name === metric)).toFixed(3)"></td>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						<template x-for="metric in metrics">
+							<tr x-show="showMetric">
+								<td x-text="getAverageMetricLabel"></td>
+								<td x-text="getAverageMetric"></td>
 							</tr>
 						</template>
 					</tfoot>
@@ -87,12 +89,12 @@
 						<th>Path</th>
 					</thead>
 					<tbody>
-						<!-- TODO: Fix object properties failing to render -->
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
 						<template x-for="fileChange in fileChanges">
 							<tr>
-								<td x-text="formatDateTime(fileChange.timestamp)"></td>
-								<td x-text="fileChange.event"></td>
-								<td x-text="fileChange.path"></td>
+								<td x-text="getFileChangeDateTime"></td>
+								<td x-text="getFileChangeEvent"></td>
+								<td x-text="getFileChangePath"></td>
 							</tr>
 						</template>
 					</tbody>

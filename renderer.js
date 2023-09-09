@@ -14,6 +14,32 @@ document.addEventListener('alpine:init', () => {
 				'CLS',
 			],
 
+			// https://github.com/chartjs/Chart.js/blob/e74ee7b75b49c0e8d79b67775ad5cd8424d95fef/src/plugins/plugin.colors.ts#L14-L25
+			colors: [
+				'rgb(54, 162, 235)', // blue
+				'rgb(255, 99, 132)', // red
+				'rgb(255, 159, 64)', // orange
+				'rgb(255, 205, 86)', // yellow
+				'rgb(75, 192, 192)', // green
+				'rgb(153, 102, 255)', // purple
+				'rgb(201, 203, 207)' // grey
+			],
+
+			// https://github.com/chartjs/Chart.js/blob/e74ee7b75b49c0e8d79b67775ad5cd8424d95fef/src/plugins/plugin.colors.ts#L14-L25
+			getMetricColors() {
+				return this.metrics.reduce((result, metric, index) => {
+					const borderColor = this.colors[index % this.colors.length];
+					const backgroundColor = borderColor.replace('rgb(', 'rgba(').replace(')', ', 0.5)');
+
+					result[metric] = {
+						borderColor,
+						backgroundColor,
+					};
+
+					return result;
+				}, {});
+			},
+
 			setSelectedMetric(event) {
 				this.selectedMetric = event.target.value;
 			},
@@ -62,12 +88,14 @@ document.addEventListener('alpine:init', () => {
 			getChart() {
 				const instanceEvents = this.getEventsGroupedByInstanceId();
 				const labels = instanceEvents.map(i => i.instanceId);
+				const metricColors = this.getMetricColors();
 
 				const datasets = this.metrics.map((metric) => ({
 					label: metric,
 					data: instanceEvents.map((instance) => {
 						return instance.events.find(e => e.name === metric)?.value.toFixed(3);
 					}),
+					...metricColors[metric],
 				})).filter((dataset) => {
 					const selectedMetric = this.selectedMetric;
 					return !selectedMetric || dataset.label === selectedMetric;

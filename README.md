@@ -24,6 +24,7 @@ npm start
 - [ ] Annotate timeline with file diffs.
 - [ ] Keep logs for different sites separate. I.e., switch between multiple projects.
 - [ ] Notify when metrics change significantly.
+- [ ] Add error notifications.
 - [ ] Compare timeline ranges.
 - [ ] Detect environment settings (e.g., device and connection speed).
 - [ ] Document adblockers blocking cross-origin beacons to http://localhost:1873.

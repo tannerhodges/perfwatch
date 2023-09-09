@@ -3,70 +3,20 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<!-- TODO: Update Content Security Policy... -->
+		<!-- TODO: Update Alpine to not require `unsafe-eval` -->
+		<!-- https://alpinejs.dev/advanced/csp -->
 		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-		<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
-		<!-- <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'">
+		<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'">
 
 		<title>⏱️ perfwatch</title>
 
-		<style>
-			body {
-				margin-block-end: 10rem;
-			}
+		<link rel="stylesheet" href="./style.css">
 
-			table {
-				table-layout: fixed;
-				min-width: 15rem;
-				border-collapse: collapse;
-				font-variant-numeric: tabular-nums;
-				text-align: left;
-			}
-
-			:where(th, td):last-child {
-				text-align: right;
-			}
-
-			summary {
-				margin-block: 0.5rem;
-			}
-
-			#folderButton {
-				margin-inline-end: 0.25rem;
-			}
-		</style>
-
-		<script>
-			document.addEventListener('alpine:init', () => {
-				Alpine.store('data', {
-					events: [],
-					fileChanges: [],
-					folderPath: '',
-				});
-			});
-
-			document.addEventListener('alpine:initialized', () => {
-				Alpine.store('data', {
-					events: Alpine.$persist([]).as('events'),
-					fileChanges: Alpine.$persist([]).as('fileChanges'),
-					folderPath: Alpine.$persist('').as('folderPath'),
-				});
-			});
-
-			window.electronAPI.handleLog((data) => {
-				Alpine.store('data').events.push(data);
-			});
-
-			window.electronAPI.handleFileChange((event, path) => {
-				const timestamp = performance.timeOrigin + performance.now();
-				Alpine.store('data').fileChanges.push({ timestamp, event, path });
-			});
-		</script>
-
-		<script defer src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
-		<script defer src="https://unpkg.com/@alpinejs/persist@3.10.2/dist/cdn.min.js"></script>
-		<script defer src="https://unpkg.com/alpinejs@3.10.2/dist/cdn.min.js"></script>
 		<script defer src="./renderer.js"></script>
+		<script defer src="./vendor/chart.js-4.4.0.umd.js"></script>
+		<script defer src="./vendor/alpinejs-persist-3.10.2.min.js"></script>
+		<script defer src="./vendor/alpinejs-3.10.2.min.js"></script>
 	</head>
 	<body>
 		<h1>⏱️ perfwatch</h1>

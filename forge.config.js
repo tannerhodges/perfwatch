@@ -5,7 +5,7 @@ module.exports = {
 	// https://stackoverflow.com/questions/46480682/how-to-sign-electron-app-using-electron-forge
 	packagerConfig: {
 		osxSign: {
-			identity: `Developer ID Application: Austin Hodges (${process.env.APPLE_TEAM_ID})`,
+			identity: process.env.APPLE_IDENTITY,
 		},
 	},
 	makers: [

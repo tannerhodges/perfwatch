@@ -4,9 +4,12 @@
   "description": "Monitor performance changes during development.",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "start":         "electron-forge start",
+    "start:debug":   "DEBUG=* electron-forge start",
+    "package":       "electron-forge package",
+    "package:debug": "DEBUG=* electron-forge package",
+    "make":          "electron-forge make",
+    "make:debug":    "DEBUG=* electron-forge make"
   },
   "author": "Tanner Hodges <me@tannerhodges.com>",
   "license": "ISC",

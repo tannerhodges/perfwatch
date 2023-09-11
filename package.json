@@ -1,6 +1,6 @@
 {
   "name": "perfwatch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Monitor performance changes during development.",
   "main": "main.js",
   "scripts": {

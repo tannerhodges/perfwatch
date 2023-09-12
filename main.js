@@ -89,7 +89,9 @@ async function handleFolderOpen() {
 	if (!canceled) {
 		await resetFileWatcher();
 
-		fileWatcher.add(filePaths[0]);
+		if (filePaths[0]) {
+			fileWatcher.add(filePaths[0]);
+		}
 
 		return filePaths[0];
 	}
@@ -116,7 +118,10 @@ app.whenReady().then(async () => {
 
 	ipcMain.handle('set-folder', async (event, folderPath) => {
 		await resetFileWatcher();
-		fileWatcher.add(folderPath);
+
+		if (folderPath) {
+			fileWatcher.add(folderPath);
+		}
 	});
 
 	ipcMain.handle('get-app-version', () => app.getVersion());

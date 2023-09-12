@@ -1,12 +1,15 @@
 {
   "name": "perfwatch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Monitor performance changes during development.",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "start":         "electron-forge start",
+    "start:debug":   "DEBUG=* electron-forge start",
+    "package":       "electron-forge package",
+    "package:debug": "DEBUG=* electron-forge package",
+    "make":          "electron-forge make",
+    "make:debug":    "DEBUG=* electron-forge make"
   },
   "author": "Tanner Hodges <me@tannerhodges.com>",
   "license": "ISC",
@@ -16,37 +19,11 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.63",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
+    "dotenv": "^16.3.1",
     "electron": "^18.1.0"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
     "electron-squirrel-startup": "^1.0.0"
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {},
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "perfwatch"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
-    }
   }
 }

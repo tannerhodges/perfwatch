@@ -10,7 +10,7 @@ table {
 	text-align: left;
 }
 
-:where(th, td):last-child {
+.table-events :where(th, td):last-child {
 	text-align: right;
 }
 

@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 		callback(event, path);
 	}),
 
+	handleFileDiff: (callback) => ipcRenderer.on('file-diff', (_event, diff) => {
+		callback(diff);
+	}),
+
+	commitInstance: (instanceId) => ipcRenderer.invoke('commit-instance', instanceId),
+
 	handleLog: (callback) => ipcRenderer.on('log', (_event, data) => {
 		callback(data);
 	}),

@@ -80,7 +80,7 @@
 				</table>
 			</details>
 
-			<details>
+			<!-- <details>
 				<summary>Show File Changes</summary>
 				<table cellpadding="5" border="1">
 					<thead>
@@ -89,12 +89,29 @@
 						<th>Path</th>
 					</thead>
 					<tbody>
-						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						https://github.com/alpinejs/alpine/discussions/2724
 						<template x-for="fileChange in fileChanges">
 							<tr>
 								<td x-text="getFileChangeDateTime"></td>
 								<td x-text="getFileChangeEvent"></td>
 								<td x-text="getFileChangePath"></td>
+							</tr>
+						</template>
+					</tbody>
+				</table>
+			</details> -->
+
+			<details>
+				<summary>Show Diffs</summary>
+				<table cellpadding="5" border="1">
+					<thead>
+						<th>Diff</th>
+					</thead>
+					<tbody>
+						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
+						<template x-for="diff in fileDiffs">
+							<tr>
+								<td><pre x-text="diff"></pre></td>
 							</tr>
 						</template>
 					</tbody>

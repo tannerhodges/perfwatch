@@ -138,11 +138,32 @@ app.whenReady().then(async () => {
 		if (!fs.existsSync(gitFolderPath)) {
 			fs.mkdirSync(gitFolderPath, { recursive: true });
 			// TODO: Verify git is installed.
-			// TODO: Verify git was also installed in the project folder.
-			// TODO: Should git files be stored in a `.git/` folder or is this fine?
+			// TODO: Verify git initialized the project folder.
 			execSync(`git --work-tree="${projectFolderPath}" --git-dir="${gitFolderPath}" init`);
-			// TODO: Replace commit messages with instance IDs.
-			execSync(`git add . && git commit -m "Initial commit"`);
+			// TODO: Replace commit message with initial instance ID.
+			execSync(`git -C "${gitFolderPath}" add .`);
+			execSync(`git -C "${gitFolderPath}" commit -m "Initial commit"`);
+		}
+	});
+
+	ipcMain.handle('commit-instance', async (event, instanceId) => {
+		if (!instanceId) {
+			return;
+		}
+
+		// TODO: Handle error when `gitFolderPath` hasn't been set by the time `commit-instance` is called.
+		// TODO: Do same validation as other `git` commands (see above).
+		if (gitFolderPath && fs.existsSync(gitFolderPath)) {
+			try {
+				// TODO: Only commit if there's actually a diff.
+				execSync(`git -C "${gitFolderPath}" add .`);
+				execSync(`git -C "${gitFolderPath}" commit -m "${instanceId}"`);
+
+				// Send "git diff" back to the app.
+				const diff = execSync(`git -C "${gitFolderPath}" show HEAD`, { encoding: 'utf-8' });
+
+				mainWindow.webContents.send('file-diff', diff);
+			} catch {}
 		}
 	});
 

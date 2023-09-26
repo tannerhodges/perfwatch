@@ -4,6 +4,7 @@ document.addEventListener('alpine:init', () => {
 			version: this.$persist('').as('version'),
 			events: this.$persist([]).as('events'),
 			fileChanges: this.$persist([]).as('fileChanges'),
+			fileDiffs: this.$persist([]).as('fileDiffs'),
 			folderPath: this.$persist('').as('folderPath'),
 			selectedMetric: this.$persist('').as('selectedMetric'),
 
@@ -57,6 +58,8 @@ document.addEventListener('alpine:init', () => {
 			reset() {
 				this.events = [];
 				this.fileChanges = [];
+				// TODO: Reset git repo?
+				this.fileDiffs = [];
 			},
 
 			formatDateTime(timestamp) {
@@ -223,6 +226,12 @@ document.addEventListener('alpine:init', () => {
 				});
 
 				window.electronAPI.handleLog((data) => {
+					const instanceIds = new Set(this.events.map(e => e.instanceId));
+					const isNewInstance = !instanceIds.has(data.instanceId);
+					if (isNewInstance) {
+						window.electronAPI.commitInstance(data.instanceId);
+					}
+
 					this.events.push(data);
 				});
 
@@ -231,6 +240,11 @@ document.addEventListener('alpine:init', () => {
 				window.electronAPI.handleFileChange((event, path) => {
 					const timestamp = performance.timeOrigin + performance.now();
 					this.fileChanges.push({ timestamp, event, path });
+				});
+
+				// TODO: Flesh out this API...
+				window.electronAPI.handleFileDiff((diff) => {
+					this.fileDiffs.unshift(diff);
 				});
 			},
 		};

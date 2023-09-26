@@ -1,4 +1,4 @@
-document.addEventListener('alpine:init', async () => {
+document.addEventListener('alpine:init', () => {
 	Alpine.data('App', function () {
 		return {
 			version: this.$persist('').as('version'),
@@ -63,10 +63,6 @@ document.addEventListener('alpine:init', async () => {
 				return (new Date(timestamp)).toISOString();
 			},
 
-			getAverage(events) {
-				return events.reduce((sum, e) => (sum + (e?.value || 0)), 0) / (events.length || 1);
-			},
-
 			getEventsGroupedByInstanceId() {
 				const instanceEvents = this.events.reduce((result, event) => {
 					let instance = result.find(g => g.instanceId === event.instanceId);
@@ -125,12 +121,40 @@ document.addEventListener('alpine:init', async () => {
 				return !this.selectedMetric || this.selectedMetric === this.$data.metric;
 			},
 
+			getAverage(values) {
+				return values.reduce((sum, value) => (sum + (value || 0)), 0) / (values.length || 1);
+			},
+
+			getStandardDeviation(values, mean) {
+				const squaredDifferences = values.map(value => Math.pow(value - mean, 2));
+				const variance = squaredDifferences.reduce((acc, value) => acc + value, 0) / (values.length - 1);
+				return Math.sqrt(variance);
+			},
+
+			getControlLimits(values, multiplier = 3) {
+				values = values
+					.filter(value => typeof value !== 'undefined')
+					.map(value => Number.parseFloat(value));
+
+				const mean = this.getAverage(values);
+				const standardDeviation = this.getStandardDeviation(values, mean);
+
+				return {
+					upper: mean + multiplier * standardDeviation,
+					lower: mean - multiplier * standardDeviation,
+				}
+			},
+
 			getAverageMetricLabel() {
 				return `Average ${this.$data.metric}`;
 			},
 
 			getAverageMetric() {
-				return this.getAverage(this.$data.events.filter(e => e.name === this.$data.metric)).toFixed(3);
+				return this.getAverage(
+					this.$data.events
+						.filter(e => e.name === this.$data.metric)
+						.map(e => e.value)
+				).toFixed(3);
 			},
 
 			getFileChangeDateTime() {
@@ -170,6 +194,30 @@ document.addEventListener('alpine:init', async () => {
 
 				Alpine.effect(() => {
 					const { labels, datasets } = this.getChart();
+					console.log('datasets', datasets);
+
+					console.log('------------------------------------------------------------');
+					console.log('LCP Control Limits');
+					console.log('------------------------------------------------------------');
+					const lcp = datasets.find(d => d.label === 'LCP');
+					const { upper: lcpUcl, lower: lcpLcl } = this.getControlLimits(lcp.data.slice(0, -1), 1.5);
+					console.log({ lcpUcl, lcpLcl });
+
+					const metricColors = this.getMetricColors();
+					datasets.push({
+						label: 'LCP UCL',
+						data: labels.map(() => lcpUcl),
+						borderColor: metricColors['LCP'].backgroundColor,
+						backgroundColor: metricColors['LCP'].backgroundColor,
+					});
+					datasets.push({
+						label: 'LCP LCL',
+						data: labels.map(() => lcpLcl),
+						borderColor: metricColors['LCP'].backgroundColor,
+						backgroundColor: metricColors['LCP'].backgroundColor,
+					});
+
+
 					chart.data.labels = labels;
 					chart.data.datasets = datasets;
 					chart.update();

@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { execSync } = require('child_process');
 const chokidar = require('chokidar');
 const fs = require('fs');
 const http = require('node:http');
@@ -6,6 +7,8 @@ const path = require('path');
 
 let server;
 let fileWatcher;
+let projectFolderPath;
+let gitFolderPath;
 let mainWindow;
 
 const port = 1873;
@@ -90,7 +93,8 @@ async function handleFolderOpen() {
 		await resetFileWatcher();
 
 		if (filePaths[0]) {
-			fileWatcher.add(filePaths[0]);
+			projectFolderPath = filePaths[0];
+			fileWatcher.add(projectFolderPath);
 		}
 
 		return filePaths[0];
@@ -119,8 +123,26 @@ app.whenReady().then(async () => {
 	ipcMain.handle('set-folder', async (event, folderPath) => {
 		await resetFileWatcher();
 
-		if (folderPath) {
-			fileWatcher.add(folderPath);
+		if (!folderPath) {
+			return;
+		}
+
+		projectFolderPath = folderPath;
+		fileWatcher.add(projectFolderPath);
+
+		// Make a "projects" folder in the user's app data folder if it doesn't exist.
+		// TODO: Should we keep track of multiple projects, or just one project at a time?
+		// TODO: If multiple projects, how do we handle potential naming conflicts?
+		const projectFolderBaseName = path.basename(projectFolderPath);
+		gitFolderPath = path.join(app.getPath('userData'), 'projects', projectFolderBaseName);
+		if (!fs.existsSync(gitFolderPath)) {
+			fs.mkdirSync(gitFolderPath, { recursive: true });
+			// TODO: Verify git is installed.
+			// TODO: Verify git was also installed in the project folder.
+			// TODO: Should git files be stored in a `.git/` folder or is this fine?
+			execSync(`git --work-tree="${projectFolderPath}" --git-dir="${gitFolderPath}" init`);
+			// TODO: Replace commit messages with instance IDs.
+			execSync(`git add . && git commit -m "Initial commit"`);
 		}
 	});
 

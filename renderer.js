@@ -194,14 +194,14 @@ document.addEventListener('alpine:init', () => {
 
 				Alpine.effect(() => {
 					const { labels, datasets } = this.getChart();
-					console.log('datasets', datasets);
+					// console.log('datasets', datasets);
 
-					console.log('------------------------------------------------------------');
-					console.log('LCP Control Limits');
-					console.log('------------------------------------------------------------');
+					// console.log('------------------------------------------------------------');
+					// console.log('LCP Control Limits');
+					// console.log('------------------------------------------------------------');
 					const lcp = datasets.find(d => d.label === 'LCP');
 					const { upper: lcpUcl, lower: lcpLcl } = this.getControlLimits(lcp.data.slice(0, -1), 1.5);
-					console.log({ lcpUcl, lcpLcl });
+					// console.log({ lcpUcl, lcpLcl });
 
 					const metricColors = this.getMetricColors();
 					datasets.push({
@@ -216,7 +216,6 @@ document.addEventListener('alpine:init', () => {
 						borderColor: metricColors['LCP'].backgroundColor,
 						backgroundColor: metricColors['LCP'].backgroundColor,
 					});
-
 
 					chart.data.labels = labels;
 					chart.data.datasets = datasets;

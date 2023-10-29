@@ -124,6 +124,12 @@ app.whenReady().then(async () => {
 		await resetFileWatcher();
 
 		if (!folderPath) {
+			console.log('🚨 TODO: Folder path is empty.');
+			return;
+		}
+
+		if (!fs.existsSync(folderPath)) {
+			console.log('🚨 TODO: Folder does not exist.', folderPath);
 			return;
 		}
 
@@ -148,6 +154,7 @@ app.whenReady().then(async () => {
 
 	ipcMain.handle('commit-instance', async (event, instanceId) => {
 		if (!instanceId) {
+			console.log('🚨 TODO: Instance ID is empty.');
 			return;
 		}
 
@@ -155,15 +162,28 @@ app.whenReady().then(async () => {
 		// TODO: Do same validation as other `git` commands (see above).
 		if (gitFolderPath && fs.existsSync(gitFolderPath)) {
 			try {
-				// TODO: Only commit if there's actually a diff.
-				execSync(`git -C "${gitFolderPath}" add .`);
-				execSync(`git -C "${gitFolderPath}" commit -m "${instanceId}"`);
+				// Check for changes.
+				const gitStatus = execSync(`git -C "${gitFolderPath}" status --porcelain`);
+				const hasChanges = gitStatus.length > 0;
+
+				if (!hasChanges) {
+					console.log('⚠️ TODO: No changes to commit.');
+					return;
+				}
+
+				// Commit changes.
+				execSync(`git -C "${gitFolderPath}" add .`, { encoding: 'utf-8' });
+				execSync(`git -C "${gitFolderPath}" commit -m "${instanceId}"`, { encoding: 'utf-8' });
 
 				// Send "git diff" back to the app.
 				const diff = execSync(`git -C "${gitFolderPath}" show HEAD`, { encoding: 'utf-8' });
 
 				mainWindow.webContents.send('file-diff', diff);
-			} catch {}
+			} catch (err) {
+				console.log('🚨 TODO: Failed to commit instance.', err);
+			}
+		} else {
+			console.log('🚨 TODO: Git folder path is either empty or could not be found.');
 		}
 	});
 

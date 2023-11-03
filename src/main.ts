@@ -1,27 +1,28 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const { execSync } = require('child_process');
-const chokidar = require('chokidar');
-const fs = require('fs');
-const http = require('node:http');
-const path = require('path');
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import http from 'node:http';
+import path from 'path';
+import _debug from 'debug';
 
-let server;
-let fileWatcher;
-let projectFolderPath;
-let gitFolderPath;
-let mainWindow;
+const debug = _debug('perfwatch');
+
+let server: http.Server;
+let projectFolderPath: string;
+let gitFolderPath: string;
+let mainWindow: BrowserWindow;
 
 const port = 1873;
 
 function startServer() {
-	const pathToScript = path.join(__dirname, 'perfwatch.js');
+	const pathToScript = path.join(__dirname, './perfwatch.js');
 
 	server = http.createServer((req, res) => {
 		if (req.method === 'GET' && req.url === '/perfwatch.js') {
 			// GET /perfwatch.js
 			fs.readFile(pathToScript, (err, data) => {
 				if (err) {
-					// TODO: Show error message in app.
+					console.log('🚨 TODO: Show error messages in app.', err);
 					res.writeHead(500, { 'Content-Type': 'text/plain' });
 					res.end('Internal Server Error');
 				} else {
@@ -41,8 +42,8 @@ function startServer() {
 				try {
 					const parsedBody = JSON.parse(body);
 					mainWindow.webContents.send('log', parsedBody);
-				} catch (error) {
-					// TODO: Show error message in app.
+				} catch (err) {
+					console.log('🚨 TODO: Show error messages in app.', err);
 				}
 
 				res.writeHead(204);
@@ -56,31 +57,16 @@ function startServer() {
 	});
 
 	server.on('clientError', (err, socket) => {
-		// TODO: Show error message in app.
+		console.log('🚨 TODO: Show error messages in app.', err);
 		socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
 	});
 
+	server.on('error', (err) => {
+		console.log('🚨 TODO: Show error messages in app.', err);
+	});
+
 	server.listen(port, () => {
-		console.log(`perfwatch server is running on http://localhost:${port}`);
-	});
-}
-
-async function resetFileWatcher() {
-	if (fileWatcher) {
-		await fileWatcher.close();
-	}
-
-	fileWatcher = chokidar.watch([], {
-		ignored: [
-			'**/.*', // Ignore hidden files
-			'**/.*/**/*', // Ignore hidden folders
-			'**/node_modules/**/*',
-		],
-		ignoreInitial: true,
-	});
-
-	fileWatcher.on('all', (event, path) => {
-		mainWindow.webContents.send('file-change', event, path);
+		console.log(`⏱️ perfwatch server is running on http://localhost:${port}`);
 	});
 }
 
@@ -90,18 +76,20 @@ async function handleFolderOpen() {
 	});
 
 	if (!canceled) {
-		await resetFileWatcher();
-
 		if (filePaths[0]) {
 			projectFolderPath = filePaths[0];
-			fileWatcher.add(projectFolderPath);
 		}
-
 		return filePaths[0];
 	}
 }
 
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (require('electron-squirrel-startup')) {
+	app.quit();
+}
+
 const createWindow = () => {
+	// Create the browser window.
 	mainWindow = new BrowserWindow({
 		width: 800,
 		height: 600,
@@ -110,19 +98,25 @@ const createWindow = () => {
 		},
 	});
 
-	mainWindow.loadFile('index.html');
+	// and load the index.html of the app.
+	if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+		mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+	} else {
+		mainWindow.loadFile(
+			path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+		);
+	}
 };
 
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
 	startServer();
-
-	await resetFileWatcher();
 
 	ipcMain.handle('open-folder', handleFolderOpen);
 
 	ipcMain.handle('set-folder', async (event, folderPath) => {
-		await resetFileWatcher();
-
 		if (!folderPath) {
 			console.log('🚨 TODO: Folder path is empty.');
 			return;
@@ -134,25 +128,29 @@ app.whenReady().then(async () => {
 		}
 
 		projectFolderPath = folderPath;
-		fileWatcher.add(projectFolderPath);
 
 		// Make a "projects" folder in the user's app data folder if it doesn't exist.
-		// TODO: Should we keep track of multiple projects, or just one project at a time?
-		// TODO: If multiple projects, how do we handle potential naming conflicts?
+		// TODO: Keep track of multiple projects. How to handle potential naming conflicts?
 		const projectFolderBaseName = path.basename(projectFolderPath);
-		gitFolderPath = path.join(app.getPath('userData'), 'projects', projectFolderBaseName);
+		gitFolderPath = path.join(
+			app.getPath('userData'),
+			'projects',
+			projectFolderBaseName
+		);
 		if (!fs.existsSync(gitFolderPath)) {
 			fs.mkdirSync(gitFolderPath, { recursive: true });
 			// TODO: Verify git is installed.
 			// TODO: Verify git initialized the project folder.
-			execSync(`git --work-tree="${projectFolderPath}" --git-dir="${gitFolderPath}" init`);
+			execSync(
+				`git --work-tree="${projectFolderPath}" --git-dir="${gitFolderPath}" init`
+			);
 			// TODO: Replace commit message with initial instance ID.
 			execSync(`git -C "${gitFolderPath}" add .`);
 			execSync(`git -C "${gitFolderPath}" commit -m "Initial commit"`);
 		}
 	});
 
-	ipcMain.handle('commit-instance', async (event, instanceId) => {
+	ipcMain.handle('commit-instance', async (_, instanceId) => {
 		if (!instanceId) {
 			console.log('🚨 TODO: Instance ID is empty.');
 			return;
@@ -163,27 +161,36 @@ app.whenReady().then(async () => {
 		if (gitFolderPath && fs.existsSync(gitFolderPath)) {
 			try {
 				// Check for changes.
-				const gitStatus = execSync(`git -C "${gitFolderPath}" status --porcelain`);
+				const gitStatus = execSync(
+					`git -C "${gitFolderPath}" status --porcelain`
+				);
 				const hasChanges = gitStatus.length > 0;
 
 				if (!hasChanges) {
-					console.log('⚠️ TODO: No changes to commit.');
+					debug('No changes to commit.');
 					return;
 				}
 
 				// Commit changes.
 				execSync(`git -C "${gitFolderPath}" add .`, { encoding: 'utf-8' });
-				execSync(`git -C "${gitFolderPath}" commit -m "${instanceId}"`, { encoding: 'utf-8' });
+				execSync(`git -C "${gitFolderPath}" commit -m "${instanceId}"`, {
+					encoding: 'utf-8',
+				});
 
 				// Send "git diff" back to the app.
-				const diff = execSync(`git -C "${gitFolderPath}" show HEAD`, { encoding: 'utf-8' });
+				const diff = execSync(`git -C "${gitFolderPath}" show HEAD`, {
+					encoding: 'utf-8',
+				});
 
 				mainWindow.webContents.send('file-diff', diff);
 			} catch (err) {
 				console.log('🚨 TODO: Failed to commit instance.', err);
 			}
 		} else {
-			console.log('🚨 TODO: Git folder path is either empty or could not be found.');
+			console.log(
+				'🚨 TODO: Git folder path is either empty or could not be found.',
+				gitFolderPath
+			);
 		}
 	});
 
@@ -192,7 +199,8 @@ app.whenReady().then(async () => {
 	createWindow();
 
 	app.on('activate', () => {
-		// Open a window if none are open (macOS).
+		// On OS X it's common to re-create a window in the app when the
+		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) {
 			createWindow();
 		}
@@ -202,9 +210,9 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', async () => {
 	server.close();
 
-	await fileWatcher.close();
-
-	// Quit the app when all windows are closed (Windows & Linux).
+	// Quit when all windows are closed, except on macOS. There, it's common
+	// for applications and their menu bar to stay active until the user quits
+	// explicitly with Cmd + Q.
 	if (process.platform !== 'darwin') {
 		app.quit();
 	}

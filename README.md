@@ -16,6 +16,14 @@ npm start
 
 ## Distributing
 
+For test builds:
+
+```sh
+npm run package
+```
+
+For sharing with everyone else:
+
 ```sh
 npm run make
 ```
@@ -33,6 +41,7 @@ DEBUG=perfwatch npm run start
 To debug the entire app build process:
 
 ```sh
+DEBUG=* npm run package
 DEBUG=* npm run make
 ```
 

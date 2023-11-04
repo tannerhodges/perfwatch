@@ -1,5 +1,7 @@
 import { onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals';
 
+// TODO: Fix `export` causing the build to fail in browser...
+// `Uncaught ReferenceError: exports is not defined`
 export type MetricEvent = {
 	name: string;
 	value: number;

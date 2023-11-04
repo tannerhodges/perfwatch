@@ -1,12 +1,12 @@
 import { onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals';
 
-type MetricEvent = {
+export type MetricEvent = {
 	name: string;
 	value: number;
 };
 
 // Send performance data to perfwatch.
-function sendMessage(e: MetricEvent) {
+export function sendMessage(e: MetricEvent) {
 	window.navigator.sendBeacon(
 		'http://localhost:1873/perfwatch/log',
 		JSON.stringify({

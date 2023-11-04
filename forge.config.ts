@@ -1,4 +1,7 @@
-import type { ForgeConfig } from '@electron-forge/shared-types';
+import type {
+	ForgeConfig,
+	ForgePackagerOptions,
+} from '@electron-forge/shared-types';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
@@ -6,30 +9,40 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import 'dotenv/config';
 
+const packagerConfig: ForgePackagerOptions = {
+	ignore: [
+		/\/_tanner_misc/,
+		/\/images/,
+		/.*.code-/,
+		/.editorconfig/,
+		/.env/,
+		/.gitignore/,
+		/.nvmrc/,
+		/example.html/,
+	],
+};
+
+// https://www.electronforge.io/guides/code-signing/code-signing-macos
+// https://stackoverflow.com/questions/46480682/how-to-sign-electron-app-using-electron-forge
+const appleCredentials = {
+	appleId: process.env.APPLE_ID || '',
+	appleIdPassword: process.env.APPLE_PASSWORD || '',
+	teamId: process.env.APPLE_TEAM_ID || '',
+};
+
+// Only sign if all credentials are provided.
+if (Object.values(appleCredentials).every((v) => v)) {
+	// https://github.com/electron/osx-sign
+	packagerConfig.osxSign = true;
+	// https://github.com/electron/notarize
+	packagerConfig.osxNotarize = {
+		tool: 'notarytool',
+		...appleCredentials,
+	};
+}
+
 const config: ForgeConfig = {
-	// https://www.electronforge.io/guides/code-signing/code-signing-macos
-	// https://stackoverflow.com/questions/46480682/how-to-sign-electron-app-using-electron-forge
-	packagerConfig: {
-		ignore: [
-			/\/_tanner_misc/,
-			/\/images/,
-			/.*.code-/,
-			/.editorconfig/,
-			/.env/,
-			/.gitignore/,
-			/.nvmrc/,
-			/example.html/,
-		],
-		// https://github.com/electron/osx-sign
-		osxSign: true,
-		// https://github.com/electron/notarize
-		osxNotarize: {
-			tool: 'notarytool',
-			appleId: process.env.APPLE_ID || '',
-			appleIdPassword: process.env.APPLE_PASSWORD || '',
-			teamId: process.env.APPLE_TEAM_ID || '',
-		},
-	},
+	packagerConfig,
 	rebuildConfig: {},
 	makers: [
 		new MakerSquirrel({}),

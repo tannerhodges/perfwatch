@@ -9,21 +9,9 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import 'dotenv/config';
 
-const packagerConfig: ForgePackagerOptions = {
-	ignore: [
-		/\/_tanner_misc/,
-		/\/images/,
-		/.*.code-/,
-		/.editorconfig/,
-		/.env/,
-		/.gitignore/,
-		/.nvmrc/,
-		/example.html/,
-	],
-};
+const packagerConfig: ForgePackagerOptions = {};
 
 // https://www.electronforge.io/guides/code-signing/code-signing-macos
-// https://stackoverflow.com/questions/46480682/how-to-sign-electron-app-using-electron-forge
 const appleCredentials = {
 	appleId: process.env.APPLE_ID || '',
 	appleIdPassword: process.env.APPLE_PASSWORD || '',
@@ -32,9 +20,7 @@ const appleCredentials = {
 
 // Only sign if all credentials are provided.
 if (Object.values(appleCredentials).every((v) => v)) {
-	// https://github.com/electron/osx-sign
 	packagerConfig.osxSign = true;
-	// https://github.com/electron/notarize
 	packagerConfig.osxNotarize = {
 		tool: 'notarytool',
 		...appleCredentials,

@@ -2,13 +2,15 @@ import { onTTFB, onFCP, onLCP, onFID, onCLS } from 'web-vitals';
 
 // TODO: Fix `export` causing the build to fail in browser...
 // `Uncaught ReferenceError: exports is not defined`
-export type MetricEvent = {
+// export type MetricEvent = {
+type MetricEvent = {
 	name: string;
 	value: number;
 };
 
 // Send performance data to perfwatch.
-export function sendMessage(e: MetricEvent) {
+// export function sendMessage(e: MetricEvent) {
+function sendMessage(e: MetricEvent) {
 	window.navigator.sendBeacon(
 		'http://localhost:1873/perfwatch/log',
 		JSON.stringify({

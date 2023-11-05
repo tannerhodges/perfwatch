@@ -10,7 +10,10 @@ const config: Config = {
 	collectCoverage: true,
 	coverageDirectory: 'coverage',
 	coverageProvider: 'v8',
-	moduleNameMapper: { '(.+)\\.js': '$1' },
+	moduleNameMapper: {
+		'chart.js': 'chart.js',
+		'(.+)\\.js': '$1',
+	},
 	preset: 'ts-jest',
 	testEnvironment: 'jsdom',
 	testPathIgnorePatterns: ['/out/'],

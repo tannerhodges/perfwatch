@@ -92,4 +92,4 @@ typings/
 out/
 
 # Ignore build files
-dist/
+build/

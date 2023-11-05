@@ -26,7 +26,10 @@ function startServer() {
 					res.writeHead(500, { 'Content-Type': 'text/plain' });
 					res.end('Internal Server Error');
 				} else {
-					res.writeHead(200, { 'Content-Type': 'text/javascript' });
+					res.writeHead(200, {
+						'Content-Type': 'text/javascript',
+						'Access-Control-Allow-Origin': '*',
+					});
 					res.end(data);
 				}
 			});

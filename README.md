@@ -7,9 +7,11 @@ npm install
 npm start
 ```
 
+<!-- prettier-ignore -->
 ```html
 <!-- ⏱️ perfwatch - ONLY FOR LOCAL DEVELOPMENT -->
-<script async src="http://localhost:1873/perfwatch.js"></script>
+<script>window.exports = window.exports || {}</script>
+<script type="module" src="http://localhost:1873/perfwatch.js"></script>
 ```
 
 ![Screenshot of perfwatch prototype](./images/2023-09-04-perfwatch-prototype-v0.2.0.jpg)

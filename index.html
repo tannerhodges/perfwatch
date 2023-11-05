@@ -23,7 +23,8 @@
 
 		<h2>Add script to your website</h2>
 		<pre><code>&lt;!-- ⏱️ perfwatch - ONLY FOR LOCAL DEVELOPMENT --&gt;
-&lt;script async src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script&gt;window.exports = window.exports || {};&lt;/script&gt;
+&lt;script type="module" src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
 
 		<h2>Select your project folder</h2>
 		<div>

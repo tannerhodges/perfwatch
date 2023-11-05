@@ -85,14 +85,16 @@ export function App(options: AppOptions, { effect }: AlpineFunctions) {
 			'rgb(201, 203, 207)', // grey
 		],
 
+		getSemiTransparentColor(color: string): string {
+			return color.replace('rgb(', 'rgba(').replace(')', ', 0.5)');
+		},
+
 		// https://github.com/chartjs/Chart.js/blob/e74ee7b75b49c0e8d79b67775ad5cd8424d95fef/src/plugins/plugin.colors.ts#L14-L25
 		getMetricColors(): MetricColors {
 			return (this.metrics as MetricNames).reduce(
 				(result: MetricColors, metric: string, index: number) => {
 					const borderColor = this.colors[index % this.colors.length];
-					const backgroundColor = borderColor
-						.replace('rgb(', 'rgba(')
-						.replace(')', ', 0.5)');
+					const backgroundColor = this.getSemiTransparentColor(borderColor);
 
 					result[metric] = {
 						borderColor,
@@ -106,9 +108,8 @@ export function App(options: AppOptions, { effect }: AlpineFunctions) {
 		},
 
 		setSelectedMetric(event: Event) {
-			const selectElement = event.target as HTMLSelectElement;
-			if (selectElement instanceof HTMLSelectElement) {
-				this.selectedMetric = selectElement.value;
+			if ('value' in event.target) {
+				this.selectedMetric = event.target.value;
 			}
 		},
 
@@ -123,8 +124,8 @@ export function App(options: AppOptions, { effect }: AlpineFunctions) {
 
 		reset() {
 			this.events = [];
-			// TODO: Reset git repo?
 			this.fileDiffs = [];
+			// TODO: Reset git repo?
 		},
 
 		formatDateTime(timestamp: string | number): string {
@@ -135,6 +136,7 @@ export function App(options: AppOptions, { effect }: AlpineFunctions) {
 			return date.toISOString();
 		},
 
+		// TODO: Finish adding tests...
 		getEventsGroupedByInstanceId(): EventsGroupedByInstanceId {
 			const instanceEvents = this.events.reduce(
 				(result: EventsGroupedByInstanceId, event: LogData) => {

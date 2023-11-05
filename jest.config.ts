@@ -13,6 +13,7 @@ const config: Config = {
 	moduleNameMapper: { '(.+)\\.js': '$1' },
 	preset: 'ts-jest',
 	testEnvironment: 'jsdom',
+	testPathIgnorePatterns: ['/out/'],
 };
 
 export default config;

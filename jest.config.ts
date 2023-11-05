@@ -10,11 +10,9 @@ const config: Config = {
 	collectCoverage: true,
 	coverageDirectory: 'coverage',
 	coverageProvider: 'v8',
+	moduleNameMapper: { '(.+)\\.js': '$1' },
 	preset: 'ts-jest',
 	testEnvironment: 'jsdom',
-	moduleNameMapper: {
-		'(.+)\\.js': '$1',
-	},
 };
 
 export default config;

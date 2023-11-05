@@ -41,4 +41,16 @@ describe('perfwatch', () => {
 			)
 		);
 	});
+
+	// TODO:
+	// it('collects TTFB', () => {});
+	// it('collects FCP', () => {});
+	// it('collects LCP', () => {});
+	// it('collects FID', () => {});
+	// it('collects CLS', () => {});
+
+	// TODO:
+	// it('collects performance.measure()', () => {});
+	// it('can send custom logs via PerfWatch.log()', () => {});
+	// it('console.logs all PerfWatch.logs', () => {});
 });

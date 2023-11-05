@@ -61,12 +61,12 @@ export type AppOptions = {
 
 export function App(options: AppOptions, { effect }: AlpineFunctions) {
 	const appOptions: AppOptions = {
-		...options,
 		version: '',
 		events: [],
 		fileDiffs: [],
 		folderPath: '',
 		selectedMetric: '',
+		...options,
 	};
 
 	return {

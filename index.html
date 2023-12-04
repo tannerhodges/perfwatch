@@ -1,28 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
 		<!-- https://alpinejs.dev/advanced/csp -->
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-		<meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+		/>
+		<meta
+			http-equiv="X-Content-Security-Policy"
+			content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+		/>
 
 		<title>⏱️ perfwatch</title>
 
-		<link rel="stylesheet" href="./style.css">
-
-		<script defer src="./renderer.js"></script>
-		<script defer src="./vendor/chartjs-4.4.0.umd.js"></script>
-		<script defer src="./vendor/alpinejs-persist-3.10.2.min.js"></script>
-		<script defer src="./vendor/alpinejs-csp-3.13.0-5-gd77d117.min.js"></script>
+		<script type="module" src="/src/renderer.ts"></script>
 	</head>
 	<body x-data="App">
 		<h1>⏱️ perfwatch</h1>
 
 		<h2>Add script to your website</h2>
 		<pre><code>&lt;!-- ⏱️ perfwatch - ONLY FOR LOCAL DEVELOPMENT --&gt;
-&lt;script async src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
+&lt;script&gt;window.exports = window.exports || {};&lt;/script&gt;
+&lt;script type="module" src="http://localhost:1873/perfwatch.js"&gt;&lt;/script&gt;</code></pre>
 
 		<h2>Select your project folder</h2>
 		<div>
@@ -36,7 +38,11 @@
 		<div>
 			<!-- https://github.com/alpinejs/alpine/discussions/1849 -->
 			<label for="selectedMetric">Filter by metric:</label>
-			<select id="selectedMetric" :value="selectedMetric" @change="setSelectedMetric">
+			<select
+				id="selectedMetric"
+				:value="selectedMetric"
+				@change="setSelectedMetric"
+			>
 				<option value="" :selected="isMetricSelected">View All</option>
 				<template x-for="metric of metrics">
 					<option x-text="metric" :selected="isMetricSelected"></option>
@@ -44,15 +50,15 @@
 			</select>
 			<button type="button" @click="reset">Reset</button>
 
-			<hr>
+			<hr />
 
 			<canvas x-ref="canvas" class="rounded-lg bg-white p-8"></canvas>
 
-			<hr>
+			<hr />
 
 			<details>
 				<summary>Show All Events</summary>
-				<table cellpadding="5" border="1">
+				<table class="table-events" cellpadding="5" border="1">
 					<thead>
 						<th>Timestamp</th>
 						<th>Metric</th>
@@ -81,20 +87,16 @@
 			</details>
 
 			<details>
-				<summary>Show File Changes</summary>
+				<summary>Show Diffs</summary>
 				<table cellpadding="5" border="1">
 					<thead>
-						<th>Timestamp</th>
-						<th>Event</th>
-						<th>Path</th>
+						<th>Diff</th>
 					</thead>
 					<tbody>
 						<!-- https://github.com/alpinejs/alpine/discussions/2724 -->
-						<template x-for="fileChange in fileChanges">
+						<template x-for="diff in fileDiffs">
 							<tr>
-								<td x-text="getFileChangeDateTime"></td>
-								<td x-text="getFileChangeEvent"></td>
-								<td x-text="getFileChangePath"></td>
+								<td><pre x-text="diff"></pre></td>
 							</tr>
 						</template>
 					</tbody>
